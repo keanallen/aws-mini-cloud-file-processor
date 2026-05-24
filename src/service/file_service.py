@@ -17,6 +17,6 @@ class FileService:
         object_name = f"{uuid}.{ext}"
         success = await utils.upload_file_to_s3(file, object_name)
         if success:
-            return {"success": True, "message": "File uploaded successfully"}
+            return {"success": True, "message": "File uploaded successfully", "object_name": object_name}
         else:
             return {"success": False, "message": "Error uploading file"}
