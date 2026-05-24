@@ -1,0 +1,56 @@
+import json
+import logging
+import time
+import os
+import boto3
+
+from dotenv import load_dotenv
+from PIL import Image
+
+
+load_dotenv()
+
+
+def listen_sqs():
+    session = boto3.Session(profile_name='demo-file-processor')
+    sqs = session.client('sqs', region_name='us-east-1')
+    s3 = session.client('s3', region_name='us-east-1')
+    queue_url = os.getenv('SQS_QUEUE_URL')
+    print('Queue URL: %s' % queue_url)
+    while True:
+        try:
+            print('Listening to SQS queue...')
+            response = sqs.receive_message(
+                QueueUrl=queue_url,
+                AttributeNames=['All'],
+                MaxNumberOfMessages=1,
+                WaitTimeSeconds=20
+            )
+
+            messages = response.get('Messages', [])
+            if not messages:
+                continue
+
+            message = messages[0]
+            body = json.loads(message['Body'])
+
+            bucket = body['bucket']
+            key = body['s3_key']
+            print("Received message: bucket=%s, key=%s" % (bucket, key))
+            # download the file
+            s3.download_file(bucket, key, '/tmp/' + key)
+            # process the image
+            img = Image.open('/tmp/' + key)
+            img.thumbnail((300, 300))
+            img.save('/tmp/thumbnail_' + key)
+            # upload the thumbnail back to S3
+            s3.upload_file('/tmp/thumbnail_' + key, bucket, 'thumbnails/thumbnail_' + key)
+            # delete the message from the queue
+            sqs.delete_message(
+                QueueUrl=queue_url,
+                ReceiptHandle=message['ReceiptHandle']
+            )
+            print('Processed message successfully: bucket=%s, key=%s' % (bucket, key))
+        except Exception as e:
+            print('An error occurred while reading from sqs: %s' % str(e)) 
+            time.sleep(10)
