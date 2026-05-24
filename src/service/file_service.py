@@ -1,7 +1,7 @@
 import datetime
 
 from fastapi import UploadFile
-from src import utils
+from src.utils import aws
 
 
 class FileService:
@@ -15,7 +15,7 @@ class FileService:
         uuid = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         ext = file.filename.split(".")[-1]
         object_name = f"{uuid}.{ext}"
-        success = await utils.upload_file_to_s3(file, object_name)
+        success = await aws.upload_file_to_s3(file, object_name)
         if success:
             return {"success": True, "message": "File uploaded successfully", "object_name": object_name}
         else:

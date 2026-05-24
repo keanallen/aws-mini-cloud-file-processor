@@ -1,22 +1,19 @@
 import json
 import time
 import os
-import boto3
 
 from dotenv import load_dotenv
 from PIL import Image
-from src.utils import aws_profile, aws_region
+from src.utils import aws
 
 
 load_dotenv()
 
 
 def listen_sqs():
-    session = boto3.Session(profile_name=aws_profile)
-    sqs = session.client('sqs', region_name=aws_region)
-    s3 = session.client('s3', region_name=aws_region)
+    sqs = aws.get_sqs_client()
+    s3 = aws.get_s3_client()
     queue_url = os.getenv('SQS_QUEUE_URL')
-    print('Queue URL: %s' % queue_url)
     while True:
         try:
             print('Listening to SQS queue...')
