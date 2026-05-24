@@ -7,9 +7,12 @@ import os
 
 load_dotenv()
 
-session = boto3.Session(profile_name='demo-file-processor')
-s3 = session.client('s3', region_name='us-east-1')
-sqs = session.client('sqs', region_name='us-east-1')
+aws_profile = os.getenv('AWS_PROFILE')
+aws_region = os.getenv('AWS_REGION')
+
+session = boto3.Session(profile_name=aws_profile)
+s3 = session.client('s3', region_name=aws_region)
+sqs = session.client('sqs', region_name=aws_region)
 bucket_name = os.getenv('S3_BUCKET')
 
 

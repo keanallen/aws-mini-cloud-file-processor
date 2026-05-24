@@ -1,20 +1,20 @@
 import json
-import logging
 import time
 import os
 import boto3
 
 from dotenv import load_dotenv
 from PIL import Image
+from src.utils import aws_profile, aws_region
 
 
 load_dotenv()
 
 
 def listen_sqs():
-    session = boto3.Session(profile_name='demo-file-processor')
-    sqs = session.client('sqs', region_name='us-east-1')
-    s3 = session.client('s3', region_name='us-east-1')
+    session = boto3.Session(profile_name=aws_profile)
+    sqs = session.client('sqs', region_name=aws_region)
+    s3 = session.client('s3', region_name=aws_region)
     queue_url = os.getenv('SQS_QUEUE_URL')
     print('Queue URL: %s' % queue_url)
     while True:
